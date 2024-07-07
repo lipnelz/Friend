@@ -16,44 +16,59 @@
 // State
 #ifdef ENABLE_BUTTON
 bool is_allowed = true;
-#else
+#else // ENABLE_BUTTON
 #define is_allowed true
-#endif
+#endif // !ENABLE_BUTTON
+
 bool is_recording = false;
 bool is_connected = false;
 bool is_charging = false;
-void refresh_state_indication();
+
+static void update_mic_if_needed(void);
+static void transport_subscribed(void);
+static void transport_unsubscribed(void);
+static void codec_handler(uint8_t *data, size_t len);
+static void mic_handler(int16_t *buffer);
+#ifdef ENABLE_BUTTON
+static void on_button_pressed(void);
+#endif // ENABLE_BUTTON
+static void refresh_state_indication(void);
 
 //
 // Mic State
 //
 
-static void update_mic_if_needed()
+static void update_mic_if_needed(void)
 {
-	if (is_allowed && is_connected && !is_recording)
+	bool should_record = (is_allowed && is_connected);
+
+	if (should_record != is_recording)
 	{
-		is_recording = true;
-		mic_resume();
-	}
-	if ((!is_allowed || !is_connected) && is_recording)
-	{
-		is_recording = false;
-		mic_pause();
+		is_recording = should_record;
+		if (should_record)
+		{
+			mic_resume();
+		}
+		else
+		{
+			mic_pause();
+		}
 	}
 }
+
 
 //
 // Transport callbacks
 //
 
-static void transport_subscribed()
+static void transport_subscribed(void)
 {
 	is_connected = true;
 	update_mic_if_needed();
 	refresh_state_indication();
 }
 
-static void transport_unsubscribed()
+static void transport_unsubscribed(void)
 {
 	is_connected = false;
 	update_mic_if_needed();
@@ -70,7 +85,7 @@ static struct transport_cb transport_callbacks = {
 //
 
 #ifdef ENABLE_BUTTON
-static void on_button_pressed()
+static void on_button_pressed(void)
 {
 	// Update allowed flag
 	is_allowed = !is_allowed;
@@ -84,7 +99,7 @@ static void on_button_pressed()
 	// Refresh LED
 	refresh_state_indication();
 }
-#endif
+#endif // ENABLE_BUTTON
 
 //
 // Audio Pipeline
@@ -104,39 +119,41 @@ static void mic_handler(int16_t *buffer)
 // LED indication
 //
 
-void refresh_state_indication()
+static void refresh_state_indication(void)
 {
-	// Recording and connected state - BLUE
-	if (is_allowed && is_recording)
+	bool red = false;
+	bool green = false;
+	bool blue = false;
+
+	if (is_allowed)
 	{
-		set_led_red(false);
-		set_led_green(false);
-		set_led_blue(true);
-		return;
+		if (is_recording)
+		{
+			// Recording and connected - BLUE
+			blue = true;
+		}
+		else
+		{
+			// Recording but lost connection - RED
+			red = true;
+		}
+	}
+	else if (is_charging)
+	{
+		// Not recording, but charging - WHITE
+		red = true;
+		green = true;
+		blue = true;
+	}
+	else
+	{
+		/* do nothing */
 	}
 
-	// Recording but lost connection - RED
-	if (is_allowed && !is_recording)
-	{
-		set_led_red(true);
-		set_led_green(false);
-		set_led_blue(false);
-		return;
-	}
-
-	// Not recording, but charging - WHITE
-	if (is_charging)
-	{
-		set_led_red(true);
-		set_led_green(true);
-		set_led_blue(true);
-		return;
-	}
-
-	// Not recording - OFF
-	set_led_red(false);
-	set_led_green(false);
-	set_led_blue(false);
+	// Otherwise, not recording - OFF (all LEDs remain false)
+	set_led_red(red);
+	set_led_green(green);
+	set_led_blue(blue);
 }
 
 //
@@ -146,7 +163,6 @@ void refresh_state_indication()
 int main(void)
 {
 	// Start watchdog
-	int err;
 	struct wdt_timeout_cfg wdt_config;
 	const struct device *wdt_dev = DEVICE_DT_GET(DT_NODELABEL(wdt));
 	wdt_config.flags = WDT_FLAG_RESET_SOC;
@@ -163,7 +179,7 @@ int main(void)
 	ASSERT_OK(settings_start());
 #ifdef ENABLE_BUTTON
 	is_allowed = settings_read_enable();
-#endif
+#endif // ENABLE_BUTTON
 	ASSERT_OK(wdt_feed(wdt_dev, 0));
 
 	// Battery start
@@ -174,7 +190,7 @@ int main(void)
 #ifdef ENABLE_CAMERA
 	ASSERT_OK(camera_start());
 	ASSERT_OK(wdt_feed(wdt_dev, 0));
-#endif
+#endif // ENABLE_CAMERA
 
 	// Transport start
 	set_transport_callbacks(&transport_callbacks);
@@ -186,7 +202,7 @@ int main(void)
 #ifdef ENABLE_BUTTON
 	set_button_handler(on_button_pressed);
 	ASSERT_OK(start_controls());
-#endif
+#endif // ENABLE_BUTTON
 	ASSERT_OK(wdt_feed(wdt_dev, 0));
 
 	// Codec start

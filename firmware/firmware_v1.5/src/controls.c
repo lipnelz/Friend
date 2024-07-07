@@ -22,7 +22,7 @@ void button_pressed(const struct device *dev, struct gpio_callback *cb, uint32_t
     k_work_reschedule(&cooldown_work, K_MSEC(15));
 }
 
-int start_controls()
+int start_controls(void)
 {
     ASSERT_OK(gpio_is_ready_dt(&button));
     ASSERT_OK(gpio_pin_configure_dt(&button, GPIO_INPUT));

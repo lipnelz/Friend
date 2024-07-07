@@ -16,7 +16,7 @@
 //
 
 static uint8_t battery_level = 100U;
-static bool battery_charging = false;
+//static bool battery_charging = false;
 static bool is_allowed = false;
 static uint16_t connected = 0;
 static struct transport_cb *external_callbacks = NULL;
@@ -37,8 +37,9 @@ static struct bt_uuid_128 audio_service_uuid = BT_UUID_INIT_128(BT_UUID_128_ENCO
 static struct bt_uuid_128 audio_characteristic_uuid = BT_UUID_INIT_128(BT_UUID_128_ENCODE(0x19B10001, 0xE8F2, 0x537E, 0x4F6C, 0xD104768A1214));
 static struct bt_uuid_128 audio_characteristic_format_uuid = BT_UUID_INIT_128(BT_UUID_128_ENCODE(0x19B10002, 0xE8F2, 0x537E, 0x4F6C, 0xD104768A1214));
 static struct bt_uuid_128 audio_characteristic_allow_uuid = BT_UUID_INIT_128(BT_UUID_128_ENCODE(0x19B10003, 0xE8F2, 0x537E, 0x4F6C, 0xD104768A1214));
-static struct bt_uuid_128 audio_characteristic_battery = BT_UUID_INIT_128(BT_UUID_128_ENCODE(0x19B10004, 0xE8F2, 0x537E, 0x4F6C, 0xD104768A1214));
-static struct bt_gatt_attr audio_attrs[] = {
+//static struct bt_uuid_128 audio_characteristic_battery = BT_UUID_INIT_128(BT_UUID_128_ENCODE(0x19B10004, 0xE8F2, 0x537E, 0x4F6C, 0xD104768A1214));
+static struct bt_gatt_attr audio_attrs[] =
+{
     BT_GATT_PRIMARY_SERVICE(&audio_service_uuid),
     // Streaming
     BT_GATT_CHARACTERISTIC(&audio_characteristic_uuid.uuid, BT_GATT_CHRC_READ | BT_GATT_CHRC_NOTIFY, BT_GATT_PERM_READ, audio_characteristic_read, NULL, NULL),
@@ -47,7 +48,8 @@ static struct bt_gatt_attr audio_attrs[] = {
     BT_GATT_CHARACTERISTIC(&audio_characteristic_format_uuid.uuid, BT_GATT_CHRC_READ, BT_GATT_PERM_READ, audio_characteristic_format_read, NULL, NULL),
     // Mute
     BT_GATT_CHARACTERISTIC(&audio_characteristic_allow_uuid.uuid, BT_GATT_CHRC_READ | BT_GATT_CHRC_NOTIFY, BT_GATT_PERM_READ, audio_characteristic_allowed_read, NULL, NULL),
-    BT_GATT_CCC(mute_ccc_config_changed_handler, BT_GATT_PERM_READ | BT_GATT_PERM_WRITE)};
+    BT_GATT_CCC(mute_ccc_config_changed_handler, BT_GATT_PERM_READ | BT_GATT_PERM_WRITE)
+};
 static struct bt_gatt_service audio_service = BT_GATT_SERVICE(audio_attrs);
 
 //
@@ -73,6 +75,16 @@ static struct bt_gatt_attr bas_attrs[] = {
     BT_GATT_CPF(&level_cpf),
 };
 static struct bt_gatt_service bas_service = BT_GATT_SERVICE(bas_attrs);
+
+
+
+#define NET_BUFFER_HEADER_SIZE 3
+#define RING_BUFFER_HEADER_SIZE 2
+static uint8_t tx_queue[NETWORK_RING_BUF_SIZE * (CODEC_OUTPUT_MAX_BYTES + RING_BUFFER_HEADER_SIZE)];
+static uint8_t tx_buffer[CODEC_OUTPUT_MAX_BYTES + RING_BUFFER_HEADER_SIZE];
+static uint8_t tx_buffer_2[CODEC_OUTPUT_MAX_BYTES + RING_BUFFER_HEADER_SIZE];
+static uint32_t tx_buffer_size = 0;
+static struct ring_buf ring_buf;
 
 //
 // Advertisement data
@@ -187,22 +199,22 @@ static void mute_ccc_config_changed_handler(const struct bt_gatt_attr *attr, uin
 //
 // Connection Callbacks
 //
-
 static const char *phy2str(uint8_t phy)
 {
-    switch (phy)
+    static const char *const phy_strings[] = {
+        "No packets",
+        "LE 1M",
+        "LE 2M",
+        "LE Coded",
+        "Unknown"
+    };
+
+    if (phy <= BT_GAP_LE_PHY_CODED)
     {
-    case 0:
-        return "No packets";
-    case BT_GAP_LE_PHY_1M:
-        return "LE 1M";
-    case BT_GAP_LE_PHY_2M:
-        return "LE 2M";
-    case BT_GAP_LE_PHY_CODED:
-        return "LE Coded";
-    default:
-        return "Unknown";
+        return phy_strings[phy];
     }
+
+    return phy_strings[4]; // "Unknown"
 }
 
 static void _transport_connected(struct bt_conn *conn, uint8_t err)
@@ -302,15 +314,6 @@ static struct bt_conn_cb _callback_references = {
 //
 // Ring Buffer
 //
-
-#define NET_BUFFER_HEADER_SIZE 3
-#define RING_BUFFER_HEADER_SIZE 2
-static uint8_t tx_queue[NETWORK_RING_BUF_SIZE * (CODEC_OUTPUT_MAX_BYTES + RING_BUFFER_HEADER_SIZE)];
-static uint8_t tx_buffer[CODEC_OUTPUT_MAX_BYTES + RING_BUFFER_HEADER_SIZE];
-static uint8_t tx_buffer_2[CODEC_OUTPUT_MAX_BYTES + RING_BUFFER_HEADER_SIZE];
-static uint32_t tx_buffer_size = 0;
-static struct ring_buf ring_buf;
-
 static bool write_to_tx_queue(uint8_t *data, size_t size)
 {
     if (size > CODEC_OUTPUT_MAX_BYTES)
@@ -325,17 +328,15 @@ static bool write_to_tx_queue(uint8_t *data, size_t size)
 
     // Write to ring buffer
     int written = ring_buf_put(&ring_buf, tx_buffer_2, (CODEC_OUTPUT_MAX_BYTES + RING_BUFFER_HEADER_SIZE)); // It always fits completely or not at all
-    if (written != CODEC_OUTPUT_MAX_BYTES + RING_BUFFER_HEADER_SIZE)
+    if (written != (CODEC_OUTPUT_MAX_BYTES + RING_BUFFER_HEADER_SIZE))
     {
         return false;
     }
-    else
-    {
-        return true;
-    }
+
+    return true;
 }
 
-static bool read_from_tx_queue()
+static bool read_from_tx_queue(void)
 {
 
     // Read from ring buffer
@@ -419,7 +420,6 @@ void pusher(void)
 {
     while (1)
     {
-
         //
         // Load current connection
         //
@@ -430,6 +430,7 @@ void pusher(void)
         {
             conn = bt_conn_ref(conn);
         }
+
         bool valid = true;
         if (current_mtu < MINIMAL_PACKET_SIZE)
         {
@@ -472,9 +473,8 @@ void pusher(void)
 // Public functions
 //
 
-int transport_start()
+int transport_start(void)
 {
-
     // Configure callbacks
     bt_conn_cb_register(&_callback_references);
 

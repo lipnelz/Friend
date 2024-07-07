@@ -1,7 +1,7 @@
 #pragma once
 #include <zephyr/kernel.h>
 
-int transport_start();
+int transport_start(void);
 int broadcast_audio_packets(uint8_t *buffer, size_t size);
 typedef void (*transport_subscribed_handler)();
 typedef void (*transport_unsubscribed_handler)();
