@@ -1,4 +1,12 @@
-#pragma once
+#ifndef __TRANSPORT_H
+#define __TRANSPORT_H
+
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
+
+
 #include <zephyr/kernel.h>
 
 int transport_start(void);
@@ -13,3 +21,10 @@ struct transport_cb
 void set_transport_callbacks(struct transport_cb *_callbacks);
 void set_allowed(bool allowed);
 void set_bt_batterylevel(uint8_t level);
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* __TRANSPORT_H */
