@@ -3,7 +3,6 @@
 #include <zephyr/drivers/adc.h>
 #include <zephyr/bluetooth/services/bas.h>
 #include "battery.h"
-#include "utils.h"
 #include "transport.h"
 
 #define GPIO_BATTERY_CHARGING_STATUS 17
@@ -63,7 +62,7 @@ BatteryState battery_states[BATTERY_STATES_COUNT] = {
 
 bool read_battery_charging(void)
 {
-    return gpio_pin_get(gpio0_port, GPIO_BATTERY_CHARGING_STATUS) == 1;
+    return (bool)(gpio_pin_get(gpio0_port, GPIO_BATTERY_CHARGING_STATUS) == 1);
 }
 
 int read_battery_voltage(void)
@@ -135,38 +134,33 @@ int battery_milivolt_to_percent(uint16_t battery_millivolt)
 //
 // Worker
 //
-
-bool battery_status_charge = false;
-int battery_voltage = 0;
-int battery_percentage = 0;
-int voltage_counter = 0;
-void refresh_worker(struct k_work *work);
+void refresh_worker(struct k_work *work, Friend_ctx_s *ctx);
 K_WORK_DELAYABLE_DEFINE(refresh_work, refresh_worker);
 
-void refresh_worker(struct k_work *work)
+void refresh_worker(struct k_work *work, Friend_ctx_s *ctx)
 {
     // Update battery status
-    battery_status_charge = read_battery_charging();
+    ctx->battery_ctx.battery_status_charge = read_battery_charging();
 
     // Update battery voltage every 10 seconds
-    if (voltage_counter % 10 == 0)
+    if (ctx->battery_ctx.voltage_counter % 10 == 0)
     {
-        battery_voltage = read_battery_voltage();
-        battery_percentage = battery_milivolt_to_percent(battery_voltage);
-        set_bt_batterylevel(battery_percentage);
-        voltage_counter = 0;
+        ctx->battery_ctx.battery_voltage = read_battery_voltage();
+        ctx->battery_ctx.battery_percentage = battery_milivolt_to_percent(ctx->battery_ctx.battery_voltage);
+        set_bt_batterylevel(ctx->battery_ctx.battery_percentage);
+        ctx->battery_ctx.voltage_counter = 0;
     }
-    voltage_counter++;
+    ctx->battery_ctx.voltage_counter++;
 
     // Submit the work item again with a delay
-    k_work_reschedule(&refresh_work, K_MSEC(1000)); // Delay of 1 second
+    k_work_reschedule(&refresh_work, K_MSEC(TIME_1_SEC_IN_MS)); // Delay of 1 second
 }
 
 //
 // Public
 //
 
-int battery_start(void)
+int battery_start(Friend_ctx_s *ctx)
 {
     // Configure ADC
     ASSERT_TRUE(device_is_ready(adc_battery_dev));
@@ -183,28 +177,13 @@ int battery_start(void)
     ASSERT_OK(gpio_pin_configure(gpio0_port, GPIO_BATTERY_CHARGE_SPEED, GPIO_INPUT));
 
     // Load init state
-    battery_status_charge = read_battery_charging();
-    battery_voltage = read_battery_voltage();
-    battery_percentage = battery_milivolt_to_percent(battery_voltage);
-    set_bt_batterylevel(battery_percentage);
+    ctx->battery_ctx.battery_status_charge = read_battery_charging();
+    ctx->battery_ctx.battery_voltage = read_battery_voltage();
+    ctx->battery_ctx.battery_percentage = battery_milivolt_to_percent(ctx->battery_ctx.battery_voltage);
+    set_bt_batterylevel(ctx->battery_ctx.battery_percentage);
 
     // Start worker
-    k_work_schedule(&refresh_work, K_MSEC(1000));
+    k_work_schedule(&refresh_work, K_MSEC(TIME_1_SEC_IN_MS));
 
     return 0;
-}
-
-bool is_battery_charging(void)
-{
-    return battery_status_charge;
-}
-
-int get_battery_voltage(void)
-{
-    return battery_voltage;
-}
-
-int get_battery_percentage(void)
-{
-    return battery_percentage;
 }

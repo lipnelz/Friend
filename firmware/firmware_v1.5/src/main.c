@@ -13,38 +13,47 @@
 #include "battery.h"
 #include "settings.h"
 
-// State
-#ifdef ENABLE_BUTTON
-bool is_allowed = true;
-#else // ENABLE_BUTTON
-#define is_allowed true
-#endif // !ENABLE_BUTTON
-
-bool is_recording = false;
-bool is_connected = false;
-bool is_charging = false;
-
-static void update_mic_if_needed(void);
-static void transport_subscribed(void);
-static void transport_unsubscribed(void);
+static void update_mic_if_needed(Friend_ctx_s *ctx);
+static void transport_subscribed(Friend_ctx_s *ctx);
+static void transport_unsubscribed(Friend_ctx_s *ctx);
 static void codec_handler(uint8_t *data, size_t len);
 static void mic_handler(int16_t *buffer);
 #ifdef ENABLE_BUTTON
 static void on_button_pressed(void);
 #endif // ENABLE_BUTTON
-static void refresh_state_indication(void);
+static void refresh_state_indication(Friend_ctx_s *ctx);
+static int friend_context_init(Friend_ctx_s *ctx);
+
+
+Friend_ctx_s friend_ctx;
+
+
+static int friend_context_init(Friend_ctx_s *ctx)
+{
+	ctx->is_recording = false;
+	ctx->is_connected = false;
+	ctx->is_allowed = true;
+	ctx->settings_enable = 0;
+
+	ctx->battery_ctx.battery_status_charge = false;
+	ctx->battery_ctx.battery_voltage = 0;
+	ctx->battery_ctx.battery_percentage = 0;
+	ctx->battery_ctx.voltage_counter = 0;
+
+	return 0;
+}
 
 //
 // Mic State
 //
 
-static void update_mic_if_needed(void)
+static void update_mic_if_needed(Friend_ctx_s *ctx)
 {
-	bool should_record = (is_allowed && is_connected);
+	bool should_record = (ctx->is_allowed && ctx->is_connected);
 
-	if (should_record != is_recording)
+	if (should_record != ctx->is_recording)
 	{
-		is_recording = should_record;
+		ctx->is_recording = should_record;
 		if (should_record)
 		{
 			mic_resume();
@@ -61,18 +70,18 @@ static void update_mic_if_needed(void)
 // Transport callbacks
 //
 
-static void transport_subscribed(void)
+static void transport_subscribed(Friend_ctx_s *ctx)
 {
-	is_connected = true;
-	update_mic_if_needed();
-	refresh_state_indication();
+	ctx->is_connected = true;
+	update_mic_if_needed(ctx);
+	refresh_state_indication(ctx);
 }
 
-static void transport_unsubscribed(void)
+static void transport_unsubscribed(Friend_ctx_s *ctx)
 {
-	is_connected = false;
-	update_mic_if_needed();
-	refresh_state_indication();
+	ctx->is_connected = false;
+	update_mic_if_needed(ctx);
+	refresh_state_indication(ctx);
 }
 
 static struct transport_cb transport_callbacks = {
@@ -88,16 +97,16 @@ static struct transport_cb transport_callbacks = {
 static void on_button_pressed(void)
 {
 	// Update allowed flag
-	is_allowed = !is_allowed;
-	set_allowed(is_allowed);
-	settings_write_enable(is_allowed);
-	printk("Mic allowed: %d\n", is_allowed);
+	friend_ctx.is_allowed = !(friend_ctx.is_allowed);
+	set_allowed(friend_ctx.is_allowed);
+	settings_write_enable(&friend_ctx);
+	printk("Mic allowed: %d\n", friend_ctx.is_allowed);
 
 	// Update mic
-	update_mic_if_needed();
+	update_mic_if_needed(&friend_ctx);
 
 	// Refresh LED
-	refresh_state_indication();
+	refresh_state_indication(&friend_ctx);
 }
 #endif // ENABLE_BUTTON
 
@@ -119,15 +128,15 @@ static void mic_handler(int16_t *buffer)
 // LED indication
 //
 
-static void refresh_state_indication(void)
+static void refresh_state_indication(Friend_ctx_s *ctx)
 {
 	bool red = false;
 	bool green = false;
 	bool blue = false;
 
-	if (is_allowed)
+	if (ctx->is_allowed)
 	{
-		if (is_recording)
+		if (ctx->is_recording)
 		{
 			// Recording and connected - BLUE
 			blue = true;
@@ -138,7 +147,7 @@ static void refresh_state_indication(void)
 			red = true;
 		}
 	}
-	else if (is_charging)
+	else if (ctx->battery_ctx.battery_status_charge)
 	{
 		// Not recording, but charging - WHITE
 		red = true;
@@ -159,12 +168,12 @@ static void refresh_state_indication(void)
 //
 // Main
 //
-
 int main(void)
 {
 	// Start watchdog
 	struct wdt_timeout_cfg wdt_config;
 	const struct device *wdt_dev = DEVICE_DT_GET(DT_NODELABEL(wdt));
+
 	wdt_config.flags = WDT_FLAG_RESET_SOC;
 	wdt_config.window.min = 0;
 	wdt_config.window.max = WDT_TIMEOUT_MS;
@@ -172,18 +181,21 @@ int main(void)
 	ASSERT_OK(wdt_install_timeout(wdt_dev, &wdt_config));
 	ASSERT_OK(wdt_setup(wdt_dev, WDT_OPT_PAUSE_HALTED_BY_DBG));
 
+	// Init Friend context with default values
+	ASSERT_OK(friend_context_init(&friend_ctx));
+
 	// Led start
 	ASSERT_OK(led_start());
 
 	// Settings start
 	ASSERT_OK(settings_start());
 #ifdef ENABLE_BUTTON
-	is_allowed = settings_read_enable();
+	friend_ctx.is_allowed = settings_read_enable(&friend_ctx);
 #endif // ENABLE_BUTTON
 	ASSERT_OK(wdt_feed(wdt_dev, 0));
 
 	// Battery start
-	ASSERT_OK(battery_start());
+	ASSERT_OK(battery_start(&friend_ctx));
 	ASSERT_OK(wdt_feed(wdt_dev, 0));
 
 	// Camera start
@@ -195,7 +207,7 @@ int main(void)
 	// Transport start
 	set_transport_callbacks(&transport_callbacks);
 	ASSERT_OK(transport_start());
-	set_allowed(is_allowed);
+	set_allowed(friend_ctx.is_allowed);
 	ASSERT_OK(wdt_feed(wdt_dev, 0));
 
 	// Controls
@@ -213,12 +225,11 @@ int main(void)
 	// Mic start
 	set_mic_callback(mic_handler);
 	ASSERT_OK(mic_start());
-	update_mic_if_needed();
+	update_mic_if_needed(&friend_ctx);
 	ASSERT_OK(wdt_feed(wdt_dev, 0));
 
 	// Set LED
-	is_charging = is_battery_charging();
-	refresh_state_indication();
+	refresh_state_indication(&friend_ctx);
 	ASSERT_OK(wdt_feed(wdt_dev, 0));
 
 	// Main loop
@@ -231,11 +242,9 @@ int main(void)
 		ASSERT_OK(wdt_feed(wdt_dev, 0));
 
 		// Update battery state
-		bool charging = is_battery_charging();
-		if (charging != is_charging)
+		if (friend_ctx.battery_ctx.battery_status_charge)
 		{
-			is_charging = charging;
-			refresh_state_indication();
+			refresh_state_indication(&friend_ctx);
 		}
 	}
 

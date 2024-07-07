@@ -1,9 +1,19 @@
-#pragma once
 
-#define CHARGE_NOT_CHARGING 0
-#define CHARGE_CHARGING 1
+#ifndef __BATTERY_H
+#define __BATTERY_H
 
-bool is_battery_charging(void);
-int get_battery_voltage(void);
-int get_battery_percentage(void);
-int battery_start(void);
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
+#include "utils.h"
+
+
+int battery_start(Friend_ctx_s *ctx);
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* __BATTERY_H */
