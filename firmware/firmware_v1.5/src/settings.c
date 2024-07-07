@@ -23,14 +23,14 @@ static struct settings_handler cfg = {
     .h_set = settings_set,
 };
 
-int settings_start()
+int settings_start(void)
 {
     ASSERT_OK(settings_subsys_init());
     ASSERT_OK(settings_register(&cfg));
     ASSERT_OK(settings_load());
 }
 
-bool settings_read_enable()
+bool settings_read_enable(void)
 {
     return settings_enable != 0;
 }
