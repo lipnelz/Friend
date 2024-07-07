@@ -61,12 +61,12 @@ BatteryState battery_states[BATTERY_STATES_COUNT] = {
 
 // Implementation
 
-bool read_battery_charging()
+bool read_battery_charging(void)
 {
     return gpio_pin_get(gpio0_port, GPIO_BATTERY_CHARGING_STATUS) == 1;
 }
 
-int read_battery_voltage()
+int read_battery_voltage(void)
 {
 
     // Voltage divider circuit (Should tune R1 in software if possible)
@@ -166,9 +166,8 @@ void refresh_worker(struct k_work *work)
 // Public
 //
 
-int battery_start()
+int battery_start(void)
 {
-
     // Configure ADC
     ASSERT_TRUE(device_is_ready(adc_battery_dev));
     ASSERT_OK(adc_channel_setup(adc_battery_dev, &channel_7_cfg));
@@ -195,17 +194,17 @@ int battery_start()
     return 0;
 }
 
-bool is_battery_charging()
+bool is_battery_charging(void)
 {
     return battery_status_charge;
 }
 
-int get_battery_voltage()
+int get_battery_voltage(void)
 {
     return battery_voltage;
 }
 
-int get_battery_percentage()
+int get_battery_percentage(void)
 {
     return battery_percentage;
 }
