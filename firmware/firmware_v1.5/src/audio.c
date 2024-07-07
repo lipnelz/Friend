@@ -1,44 +1,44 @@
-#define BIAS (0x84) /* Bias for linear code. */
+#include <stdio.h>
 
-static int search(int val, short* table, int size)
+
+#define BIAS (0x84U) /* Bias for linear code. */
+#define SEG_SIZE (0x08U)
+
+uint8_t linear2ulaw(__int32_t pcm_val) /* 2's complement (16-bit range) */
 {
-    int i;
-
-    for (i = 0; i < size; i++) {
-        if (val <= *table++)
-            return (i);
-    }
-    return (size);
-}
-
-static short seg_end[8] = { 0xFF, 0x1FF, 0x3FF, 0x7FF, 0xFFF, 0x1FFF, 0x3FFF, 0x7FFF };
-
-unsigned char linear2ulaw(int pcm_val) /* 2's complement (16-bit range) */
-{
-    int mask;
-    int seg;
-    unsigned char uval;
+    static const uint16_t seg_end[SEG_SIZE] = {0x001F, 0x003F, 0x007F, 0x00FF, 0x01FF, 0x03FF, 0x07FF, 0x0FFF};
+    __int32_t mask = 0;
+    uint8_t uval = 0;
+    uint8_t idx = 0;
 
     /* Get the sign and the magnitude of the value. */
-    if (pcm_val < 0) {
+    if (pcm_val < 0)
+    {
         pcm_val = BIAS - pcm_val;
         mask = 0x7F;
-    } else {
+    }
+    else
+    {
         pcm_val += BIAS;
         mask = 0xFF;
     }
 
     /* Convert the scaled magnitude to segment number. */
-    seg = search(pcm_val, seg_end, 8);
+     for (idx = 0; idx < SEG_SIZE; idx++)
+     {
+        if (pcm_val <= seg_end[idx])
+            break;
+    }
 
     /*
      * Combine the sign, segment, quantization bits;
      * and complement the code word.
      */
-    if (seg >= 8) /* out of range, return maximum value. */
+    if (seg_end[idx] >= 8) /* out of range, return maximum value. */
+    {
         return (0x7F ^ mask);
-    else {
-        uval = (seg << 4) | ((pcm_val >> (seg + 3)) & 0xF);
-        return (uval ^ mask);
     }
+
+    uval = (uint8_t)(seg_end[idx] << 0x04) | ((pcm_val >> (seg_end[idx] + 0x03)) & 0x0F);
+    return (uval ^ mask);
 }
