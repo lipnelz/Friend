@@ -18,6 +18,8 @@ target_sources(app PRIVATE
     src/settings.c
 )
 
+target_include_directories(app PRIVATE inc)
+
 target_sources_ifdef(CONFIG_BUBBLE_CODEC_OPUS app PRIVATE
     src/opus-1.2.1/A2NLSF.c
     src/opus-1.2.1/CNG.c
