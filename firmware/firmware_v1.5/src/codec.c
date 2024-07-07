@@ -88,7 +88,7 @@ void codec_entry()
     }
 }
 
-int codec_start()
+int codec_start(void)
 {
 
 // OPUS

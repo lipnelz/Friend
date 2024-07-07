@@ -54,7 +54,7 @@ static void pdm_irq_handler(nrfx_pdm_evt_t const *event)
     }
 }
 
-int mic_start()
+int mic_start(void)
 {
 
     // Start the high frequency clock
@@ -82,12 +82,12 @@ int mic_start()
     // Power on Mic
     nrfy_gpio_cfg_output(PDM_PWR_PIN);
     nrfy_gpio_pin_set(PDM_PWR_PIN);
-    
+
     printk("Microphone started\n");
     return 0;
 }
 
-int mic_resume()
+int mic_resume(void)
 {
     if (nrfx_pdm_start() != NRFX_SUCCESS)
     {
@@ -99,7 +99,7 @@ int mic_resume()
     return 0;
 }
 
-int mic_pause()
+int mic_pause(void)
 {
     if (nrfx_pdm_stop() != NRFX_SUCCESS)
     {

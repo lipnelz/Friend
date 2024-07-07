@@ -1,5 +1,11 @@
-#ifndef CAMERA_H
-#define CAMERA_H
+#ifndef __CAMERA_H
+#define __CAMERA_H
+
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
+
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
 #include <zephyr/drivers/spi.h>
@@ -12,4 +18,10 @@ static const struct spi_dt_spec camera_spi_dev = SPI_DT_SPEC_GET(DT_NODELABEL(ca
 int camera_start(void);
 
 int take_photo(void);
+
+
+#ifdef __cplusplus
+}
 #endif
+
+#endif /* __CAMERA_H */

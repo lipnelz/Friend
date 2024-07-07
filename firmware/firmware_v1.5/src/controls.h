@@ -1,4 +1,10 @@
-#pragma once
+#ifndef __CONTROLS_H
+#define __CONTROLS_H
+
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
 
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/gpio.h>
@@ -8,3 +14,11 @@ typedef void (*button_handler)();
 
 int start_controls(void);
 void set_button_handler(button_handler _handler);
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* __CONTROLS_H */
+
