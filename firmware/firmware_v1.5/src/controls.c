@@ -19,7 +19,7 @@ static K_WORK_DELAYABLE_DEFINE(cooldown_work, cooldown_expired);
 
 void button_pressed(const struct device *dev, struct gpio_callback *cb, uint32_t pins)
 {
-    k_work_reschedule(&cooldown_work, K_MSEC(15));
+    k_work_reschedule(&cooldown_work, K_MSEC(TIME_15_MS));
 }
 
 int start_controls(void)
