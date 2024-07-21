@@ -142,8 +142,8 @@ void refresh_worker(struct k_work *work, Friend_ctx_s *ctx)
     // Update battery status
     ctx->battery_ctx.battery_status_charge = read_battery_charging();
 
-    // Update battery voltage every 10 seconds
-    if (ctx->battery_ctx.voltage_counter % 10 == 0)
+    // Update battery voltage every 20 seconds
+    if (ctx->battery_ctx.voltage_counter % 20 == 0)
     {
         ctx->battery_ctx.battery_voltage = read_battery_voltage();
         ctx->battery_ctx.battery_percentage = battery_milivolt_to_percent(ctx->battery_ctx.battery_voltage);
@@ -153,7 +153,7 @@ void refresh_worker(struct k_work *work, Friend_ctx_s *ctx)
     ctx->battery_ctx.voltage_counter++;
 
     // Submit the work item again with a delay
-    k_work_reschedule(&refresh_work, K_MSEC(TIME_1_SEC_IN_MS)); // Delay of 1 second
+    k_work_reschedule(&refresh_work, K_MSEC(2*TIME_1_SEC_IN_MS)); // Delay of 2 second
 }
 
 //

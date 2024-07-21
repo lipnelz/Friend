@@ -9,6 +9,7 @@
 #include <zephyr/bluetooth/gatt.h>
 
 #define TIME_1_SEC_IN_MS (1000U)
+#define TIME_15_MS       (15U)
 
 typedef struct Battery_context
 {
