@@ -221,7 +221,6 @@ static void mute_ccc_config_changed_handler(const struct bt_gatt_attr *attr, uin
 //
 // DFU Service handlers
 //
-<<<<<<< HEAD
 
 static ssize_t dfu_control_point_write_handler(struct bt_conn *conn, const struct bt_gatt_attr *attr, const void *buf, uint16_t len, uint16_t offset, uint8_t flags)
 {
@@ -261,8 +260,6 @@ static void dfu_ccc_config_changed_handler(const struct bt_gatt_attr *attr, uint
 //
 // Connection Callbacks
 //
-=======
->>>>>>> be14a418ef24004d461752e7737cd021e48a0081
 static const char *phy2str(uint8_t phy)
 {
     static const char *const phy_strings[] = {
