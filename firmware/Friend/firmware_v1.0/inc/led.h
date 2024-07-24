@@ -1,13 +1,9 @@
-<<<<<<< HEAD
 #ifndef __LED_H
 #define __LED_H
 
 #ifdef __cplusplus
  extern "C" {
 #endif
-=======
-#pragma once
->>>>>>> 502e2fcc (fixup! fix to transcribe endpoint (removed speech profiles))
 
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/gpio.h>
@@ -16,7 +12,6 @@ static const struct gpio_dt_spec led_red = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpio
 static const struct gpio_dt_spec led_green = GPIO_DT_SPEC_GET(DT_ALIAS(led1), gpios);
 static const struct gpio_dt_spec led_blue = GPIO_DT_SPEC_GET(DT_ALIAS(led2), gpios);
 
-<<<<<<< HEAD
 int led_start(void);
 void set_led_red(bool on);
 void set_led_green(bool on);
@@ -28,9 +23,3 @@ void set_led_blue(bool on);
 #endif
 
 #endif /* __LED_H */
-=======
-int led_start();
-void set_led_red(bool on);
-void set_led_green(bool on);
-void set_led_blue(bool on);
->>>>>>> 502e2fcc (fixup! fix to transcribe endpoint (removed speech profiles))

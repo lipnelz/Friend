@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 #ifndef __UTILS_H
 #define __UTILS_H
 
@@ -10,11 +9,17 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/bluetooth/gatt.h>
 #include "config.h"
-=======
-#pragma once
 #include <zephyr/logging/log.h>
 #include <zephyr/bluetooth/gatt.h>
->>>>>>> 502e2fcc (fixup! fix to transcribe endpoint (removed speech profiles))
+
+
+typedef struct Friend_context
+{
+  bool is_connected;
+  bool is_charging;
+} Friend_Ctx_s;
+
+Friend_Ctx_s* get_friend_context(void);
 
 #define ASSERT_OK(result)                                          \
     if ((result) < 0)                                              \
@@ -30,16 +35,9 @@
         return -1;                                                 \
     }
 
-<<<<<<< HEAD
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* __UTILS_H */
-=======
-// #define WAIT_LOG k_sleep(K_MSEC(200));
-// #define WAIT_LOG do {} while(0);
-// #define WAIT_LOG z_impl_log_process()
-// #define WAIT_LOG while (z_impl_log_process() == true) { }
->>>>>>> 502e2fcc (fixup! fix to transcribe endpoint (removed speech profiles))

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 #ifndef __BT_UTILS_H
 #define __BT_UTILS_H
 
@@ -6,9 +5,6 @@
  extern "C" {
 #endif
 
-
-=======
->>>>>>> 502e2fcc (fixup! fix to transcribe endpoint (removed speech profiles))
 #include <zephyr/bluetooth/gatt.h>
 
 static const char *phy2str(uint8_t phy)
@@ -20,7 +16,6 @@ static const char *phy2str(uint8_t phy)
     case BT_GAP_LE_PHY_CODED: return "LE Coded";
     default: return "Unknown";
     }
-<<<<<<< HEAD
 }
 
 #ifdef __cplusplus
@@ -28,6 +23,3 @@ static const char *phy2str(uint8_t phy)
 #endif
 
 #endif /* __BT_UTILS_H */
-=======
-}
->>>>>>> 502e2fcc (fixup! fix to transcribe endpoint (removed speech profiles))
