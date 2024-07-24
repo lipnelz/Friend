@@ -17,8 +17,6 @@
 //
 // Internal
 //
-extern bool is_connected;
-
 static struct bt_conn_cb _callback_references;
 
 static void audio_ccc_config_changed_handler(const struct bt_gatt_attr *attr, uint16_t value);
@@ -189,6 +187,11 @@ void broadcast_battery_level(struct k_work *work_item) {
 //
 // Connection Callbacks
 //
+static void set_ctx_connection_state(bool state)
+{
+    Friend_Ctx_s *tmp_ctx = get_friend_context();
+    tmp_ctx->is_connected = state;
+}
 
 static void _transport_connected(struct bt_conn *conn, uint8_t err)
 {
@@ -210,12 +213,12 @@ static void _transport_connected(struct bt_conn *conn, uint8_t err)
 
     k_work_schedule(&battery_work, K_MSEC(BATTERY_REFRESH_INTERVAL));
 
-    is_connected = true;
+    set_ctx_connection_state(true);
 }
 
 static void _transport_disconnected(struct bt_conn *conn, uint8_t err)
 {
-    is_connected = true;
+    set_ctx_connection_state(false);
 
     printk("Disconnected\n");
     bt_conn_unref(conn);
