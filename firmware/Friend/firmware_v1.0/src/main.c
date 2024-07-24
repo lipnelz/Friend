@@ -7,6 +7,19 @@
 #include "audio.h"
 #include "codec.h"
 
+// Main device context
+Friend_Ctx_s Friend_ctx;
+
+static void init_context(Friend_Ctx_s *ctx);
+static void codec_handler(uint8_t *data, size_t len);
+static void mic_handler(int16_t *buffer);
+
+static void init_context(Friend_Ctx_s *ctx)
+{
+	ctx->is_charging = false;
+	ctx->is_connected = false;
+}
+
 static void codec_handler(uint8_t *data, size_t len)
 {
 	broadcast_audio_packets(data, len); // Errors are logged inside
@@ -17,6 +30,11 @@ static void mic_handler(int16_t *buffer)
 	codec_receive_pcm(buffer, MIC_BUFFER_SAMPLES); // Errors are logged inside
 }
 
+Friend_Ctx_s* get_friend_context(void)
+{
+    return &Friend_ctx;
+}
+
 void bt_ctlr_assert_handle(char *name, int type)
 {
 	if (name != NULL)
@@ -25,13 +43,10 @@ void bt_ctlr_assert_handle(char *name, int type)
 	}
 }
 
-bool is_connected = false;
-bool is_charging = false;
-
-void set_led_state()
+void set_led_state(Friend_Ctx_s *ctx)
 {
 	// Recording and connected state - BLUE
-	if (is_connected)
+	if (ctx->is_connected == true)
 	{
 		set_led_red(false);
 		set_led_green(false);
@@ -40,7 +55,7 @@ void set_led_state()
 	}
 
 	// Recording but lost connection - RED
-	if (!is_connected)
+	if (ctx->is_connected == false)
 	{
 		set_led_red(true);
 		set_led_green(false);
@@ -49,7 +64,7 @@ void set_led_state()
 	}
 
 	// Not recording, but charging - WHITE
-	if (is_charging)
+	if (ctx->is_charging == true)
 	{
 		set_led_red(true);
 		set_led_green(true);
@@ -66,6 +81,8 @@ void set_led_state()
 // Main loop
 int main(void)
 {
+	init_context(&Friend_ctx);
+
 	// Led start
 	ASSERT_OK(led_start());
 	set_led_blue(true);
@@ -83,7 +100,7 @@ int main(void)
 
 	while (1)
 	{
-		set_led_state();
+		set_led_state(&Friend_ctx);
 		k_msleep(500);
 	}
 
