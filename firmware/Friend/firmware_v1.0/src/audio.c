@@ -1,29 +1,36 @@
+#include <stdint.h>
+
 #define BIAS (0x84) /* Bias for linear code. */
 
-static int search(int val, short* table, int size)
-{
-    int i;
+static int16_t seg_end[8] = { 0x00FF, 0x01FF, 0x03FF, 0x07FF, 0x0FFF, 0x1FFF, 0x3FFF, 0x7FFF };
 
-    for (i = 0; i < size; i++) {
+
+static int search(int val, int16_t* table, int size);
+
+static int search(int val, int16_t* table, int size)
+{
+    for (int i = 0; i < size; i++)
+    {
         if (val <= *table++)
             return (i);
     }
     return (size);
 }
 
-static short seg_end[8] = { 0xFF, 0x1FF, 0x3FF, 0x7FF, 0xFFF, 0x1FFF, 0x3FFF, 0x7FFF };
-
-unsigned char linear2ulaw(int pcm_val) /* 2's complement (16-bit range) */
+uint8_t linear2ulaw(int pcm_val) /* 2's complement (16-bit range) */
 {
-    int mask;
     int seg;
-    unsigned char uval;
+    uint8_t mask;
+    uint8_t uval;
 
     /* Get the sign and the magnitude of the value. */
-    if (pcm_val < 0) {
+    if (pcm_val < 0)
+    {
         pcm_val = BIAS - pcm_val;
         mask = 0x7F;
-    } else {
+    }
+    else
+    {
         pcm_val += BIAS;
         mask = 0xFF;
     }
@@ -36,9 +43,9 @@ unsigned char linear2ulaw(int pcm_val) /* 2's complement (16-bit range) */
      * and complement the code word.
      */
     if (seg >= 8) /* out of range, return maximum value. */
+    {
         return (0x7F ^ mask);
-    else {
-        uval = (seg << 4) | ((pcm_val >> (seg + 3)) & 0xF);
-        return (uval ^ mask);
     }
+    uval = (seg << 4) | ((pcm_val >> (seg + 3)) & 0xF);
+    return (uval ^ mask);
 }
