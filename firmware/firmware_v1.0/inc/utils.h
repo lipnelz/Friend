@@ -8,12 +8,26 @@
 
 #include <zephyr/logging/log.h>
 #include <zephyr/bluetooth/gatt.h>
+#include "config.h"
+
+typedef void (*mix_handler)(int16_t *);
+
+typedef struct Mic_context
+{
+    int16_t _buffer_0[MIC_BUFFER_SAMPLES];
+    int16_t _buffer_1[MIC_BUFFER_SAMPLES];
+    uint8_t _next_buffer_index;
+    mix_handler _callback;
+} Mic_ctx_s;
 
 typedef struct Friend_context
 {
   bool is_connected;
   bool is_charging;
+  Mic_ctx_s mic;
 } Friend_Ctx_s;
+
+
 
 Friend_Ctx_s* get_friend_context(void);
 

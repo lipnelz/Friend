@@ -5,8 +5,9 @@
  extern "C" {
 #endif
 
+#include <stdint.h>
 
-unsigned char linear2ulaw(int pcm_val);
+uint8_t linear2ulaw(int pcm_val);
 
 
 #ifdef __cplusplus
