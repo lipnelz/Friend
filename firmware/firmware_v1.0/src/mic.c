@@ -6,18 +6,11 @@
 #include "nrfx_pdm.h"
 #include "config.h"
 #include "mic.h"
-#include "utils.h"
 #include "led.h"
 
 //
 // Port of this code: https://github.com/Seeed-Studio/Seeed_Arduino_Mic/blob/master/src/hardware/nrf52840_adc.cpp
 //
-
-static int16_t _buffer_0[MIC_BUFFER_SAMPLES];
-static int16_t _buffer_1[MIC_BUFFER_SAMPLES];
-static volatile uint8_t _next_buffer_index = 0;
-static volatile mix_handler _callback = NULL;
-
 static void pdm_irq_handler(nrfx_pdm_evt_t const *event)
 {
     // Ignore error (how to handle?)
@@ -27,19 +20,21 @@ static void pdm_irq_handler(nrfx_pdm_evt_t const *event)
         return;
     }
 
+    Friend_Ctx_s *tmp_ctx = get_friend_context();
+
     // Assign buffer
     if (event->buffer_requested)
     {
         // printk("Buffer requested\n");
-        if (_next_buffer_index == 0)
+        if (tmp_ctx->mic._next_buffer_index == 0)
         {
-            nrfx_pdm_buffer_set(_buffer_0, MIC_BUFFER_SAMPLES);
-            _next_buffer_index = 1;
+            nrfx_pdm_buffer_set(tmp_ctx->mic._buffer_0, MIC_BUFFER_SAMPLES);
+            tmp_ctx->mic._next_buffer_index = 1;
         }
         else
         {
-            nrfx_pdm_buffer_set(_buffer_1, MIC_BUFFER_SAMPLES);
-            _next_buffer_index = 0;
+            nrfx_pdm_buffer_set(tmp_ctx->mic._buffer_1, MIC_BUFFER_SAMPLES);
+            tmp_ctx->mic._next_buffer_index = 0;
         }
     }
 
@@ -47,14 +42,14 @@ static void pdm_irq_handler(nrfx_pdm_evt_t const *event)
     if (event->buffer_released)
     {
         // printk("Buffer released\n");
-        if (_callback)
+        if (tmp_ctx->mic._callback)
         {
-            _callback(event->buffer_released);
+            tmp_ctx->mic._callback(event->buffer_released);
         }
     }
 }
 
-int mic_start()
+int mic_start(void)
 {
 
     // Start the high frequency clock
@@ -94,6 +89,7 @@ int mic_start()
     return 0;
 }
 
-void set_mic_callback(mix_handler callback) {
-    _callback = callback;
+void set_mic_callback(Friend_Ctx_s *ctx, mix_handler callback)
+{
+    ctx->mic._callback = callback;
 }

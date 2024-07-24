@@ -1,8 +1,8 @@
-#include "led.h"
 #include <zephyr/drivers/gpio.h>
+#include "led.h"
 #include "utils.h"
 
-int led_start()
+int led_start(void)
 {
     ASSERT_TRUE(gpio_is_ready_dt(&led_red));
     ASSERT_OK(gpio_pin_configure_dt(&led_red, GPIO_OUTPUT_INACTIVE));

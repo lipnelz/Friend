@@ -1,9 +1,8 @@
-#include <stdint.h>
+#include "audio.h"
 
 #define BIAS (0x84) /* Bias for linear code. */
 
 static int16_t seg_end[8] = { 0x00FF, 0x01FF, 0x03FF, 0x07FF, 0x0FFF, 0x1FFF, 0x3FFF, 0x7FFF };
-
 
 static int search(int val, int16_t* table, int size);
 

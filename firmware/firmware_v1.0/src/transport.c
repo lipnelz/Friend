@@ -442,7 +442,7 @@ void pusher(void)
 // Public functions
 //
 
-int transport_start()
+int transport_start(void)
 {
     // Configure callbacks
     bt_conn_cb_register(&_callback_references);
@@ -477,11 +477,11 @@ int transport_start()
 
 	if (battErr)
 	{
-		 printk("Battery init failed (err %d)\n", battErr);
+		printk("Battery init failed (err %d)\n", battErr);
 	}
 	else
 	{
-		  printk("Battery initialized\n");
+		printk("Battery initialized\n");
 	}
 
     // Start pusher
