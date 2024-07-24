@@ -1,3 +1,11 @@
+#ifndef __CONFIG_H
+#define __CONFIG_H
+
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
+
 #include <haly/nrfy_gpio.h>
 
 // #define SAMPLE_RATE 16000
@@ -63,3 +71,9 @@
 
 // Logs
 // #define LOG_DISCARDED
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* __CONFIG_H */

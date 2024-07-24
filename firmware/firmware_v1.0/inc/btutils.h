@@ -1,3 +1,11 @@
+#ifndef __BT_UTILS_H
+#define __BT_UTILS_H
+
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
+
 #include <zephyr/bluetooth/gatt.h>
 
 static const char *phy2str(uint8_t phy)
@@ -10,3 +18,9 @@ static const char *phy2str(uint8_t phy)
     default: return "Unknown";
     }
 }
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* __BT_UTILS_H */

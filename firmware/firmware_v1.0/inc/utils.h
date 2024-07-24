@@ -1,6 +1,21 @@
-#pragma once
+#ifndef __UTILS_H
+#define __UTILS_H
+
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
+
 #include <zephyr/logging/log.h>
 #include <zephyr/bluetooth/gatt.h>
+
+typedef struct Friend_context
+{
+  bool is_connected;
+  bool is_charging;
+} Friend_Ctx_s;
+
+Friend_Ctx_s* get_friend_context(void);
 
 #define ASSERT_OK(result)                                          \
     if ((result) < 0)                                              \
@@ -16,7 +31,9 @@
         return -1;                                                 \
     }
 
-// #define WAIT_LOG k_sleep(K_MSEC(200));
-// #define WAIT_LOG do {} while(0);
-// #define WAIT_LOG z_impl_log_process()
-// #define WAIT_LOG while (z_impl_log_process() == true) { }
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* __UTILS_H */

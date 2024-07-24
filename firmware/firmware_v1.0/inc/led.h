@@ -1,4 +1,9 @@
-#pragma once
+#ifndef __LED_H
+#define __LED_H
+
+#ifdef __cplusplus
+ extern "C" {
+#endif
 
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/gpio.h>
@@ -11,3 +16,10 @@ int led_start();
 void set_led_red(bool on);
 void set_led_green(bool on);
 void set_led_blue(bool on);
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* __LED_H */
