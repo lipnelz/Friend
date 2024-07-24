@@ -18,6 +18,9 @@ static void init_context(Friend_Ctx_s *ctx)
 {
 	ctx->is_charging = false;
 	ctx->is_connected = false;
+
+	ctx->mic._callback = NULL;
+	ctx->mic._next_buffer_index = 0;
 }
 
 static void codec_handler(uint8_t *data, size_t len)
@@ -95,7 +98,7 @@ int main(void)
 	ASSERT_OK(codec_start());
 
 	// Mic start
-	set_mic_callback(mic_handler);
+	set_mic_callback(&Friend_ctx, mic_handler);
 	ASSERT_OK(mic_start());
 
 	while (1)
