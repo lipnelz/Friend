@@ -2,7 +2,7 @@
 #define CONFIG_OPUS_MODE_SILK                   (1 << 1)
 #define CONFIG_OPUS_MODE_HYBRID                 (CONFIG_OPUS_MODE_CELT | CONFIG_OPUS_MODE_SILK)
 
-#include "../../config.h"
+#include "../../../inc/config.h"
 
 // <h> Opus Options
 // <o> Mode

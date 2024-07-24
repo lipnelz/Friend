@@ -17,6 +17,7 @@
 //
 // Internal
 //
+extern bool is_connected;
 
 static struct bt_conn_cb _callback_references;
 
@@ -207,10 +208,14 @@ static void _transport_connected(struct bt_conn *conn, uint8_t err)
     printk("LE data len updated: TX (len: %d time: %d) RX (len: %d time: %d)\n", info.le.data_len->tx_max_len, info.le.data_len->tx_max_time, info.le.data_len->rx_max_len, info.le.data_len->rx_max_time);
 
     k_work_schedule(&battery_work, K_MSEC(BATTERY_REFRESH_INTERVAL));
+
+    is_connected = true;
 }
 
 static void _transport_disconnected(struct bt_conn *conn, uint8_t err)
 {
+    is_connected = true;
+
     printk("Disconnected\n");
     bt_conn_unref(conn);
     current_connection = NULL;
