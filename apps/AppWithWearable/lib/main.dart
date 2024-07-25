@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart' as ble;
@@ -43,16 +44,16 @@ void main() async {
     );
   }
 
+  await initializeNotifications();
+  await SharedPreferencesUtil.init();
+  await ObjectBoxUtil.init();
+  await MixpanelManager.init();
+
   listenAuthTokenChanges();
   bool isAuth = false;
   try {
     isAuth = (await getIdToken()) != null;
   } catch (e) {} // if no connect this will fail
-
-  await initializeNotifications();
-  await SharedPreferencesUtil.init();
-  await ObjectBoxUtil.init();
-  await MixpanelManager.init();
 
   if (isAuth) MixpanelManager().identify();
 
@@ -74,6 +75,13 @@ void main() async {
           token: Env.instabugApiKey!,
           invocationEvents: [InvocationEvent.shake, InvocationEvent.screenshot],
         );
+        if (isAuth) {
+          Instabug.identifyUser(
+            FirebaseAuth.instance.currentUser?.email ?? '',
+            SharedPreferencesUtil().fullName,
+            SharedPreferencesUtil().uid,
+          );
+        }
         FlutterError.onError = (FlutterErrorDetails details) {
           Zone.current.handleUncaughtError(details.exception, details.stack ?? StackTrace.empty);
         };

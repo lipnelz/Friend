@@ -30,10 +30,7 @@ Future<List<TranscriptSegment>> deepgramTranscribe(File file) async {
   });
 
   DeepgramSttResult res = await deepgram.transcribeFromFile(file);
-  debugPrint('Deepgram took: ${DateTime
-      .now()
-      .difference(startTime)
-      .inSeconds} seconds');
+  debugPrint('Deepgram took: ${DateTime.now().difference(startTime).inSeconds} seconds');
   var data = jsonDecode(res.json);
   if (data['results'] == null || data['results']['channels'] == null) {
     print('Deepgram error: ${data['error']}');
@@ -67,31 +64,19 @@ Future<List<TranscriptSegment>> deepgramTranscribe(File file) async {
   return segments;
 }
 
-Future<String> devModeWebhookCall(Memory? memory) async {
+Future<String> webhookOnMemoryCreatedCall(Memory? memory, {bool returnRawBody = false}) async {
   if (memory == null) return '';
   debugPrint('devModeWebhookCall: $memory');
-  return triggerMemoryRequestAtEndpoint(SharedPreferencesUtil().webhookUrl, memory);
+  return triggerMemoryRequestAtEndpoint(
+    SharedPreferencesUtil().webhookOnMemoryCreated,
+    memory,
+    returnRawBody: returnRawBody,
+  );
 }
 
-Future<String?> wavToBase64(String filePath) async {
-  if (filePath.isEmpty) return null;
-  try {
-    // Read file as bytes
-    File file = File(filePath);
-    if (!file.existsSync()) {
-      // print('File does not exist: $filePath');
-      return null;
-    }
-    List<int> fileBytes = await file.readAsBytes();
-
-    // Encode bytes to base64
-    String base64Encoded = base64Encode(fileBytes);
-
-    return base64Encoded;
-  } catch (e) {
-    // print('Error converting WAV to base64: $e');
-    return null; // Handle error gracefully in your application
-  }
+Future<String> webhookOnTranscriptReceivedCall(List<TranscriptSegment> segments, String sessionId) async {
+  debugPrint('webhookOnTranscriptReceivedCall: $segments');
+  return triggerTranscriptSegmentsRequest(SharedPreferencesUtil().webhookOnTranscriptReceived, sessionId, segments);
 }
 
 Future<String> getPluginMarkdown(String pluginMarkdownPath) async {
@@ -118,9 +103,14 @@ Future<bool> isPluginSetupCompleted(String? url) async {
   return data['is_setup_completed'] ?? false;
 }
 
-Future<String> triggerMemoryRequestAtEndpoint(String url, Memory memory) async {
-  debugPrint('triggerMemoryRequestAtEndpoint: $url');
+Future<String> triggerMemoryRequestAtEndpoint(String url, Memory memory, {bool returnRawBody = false}) async {
   if (url.isEmpty) return '';
+  if (url.contains('?')) {
+    url += '&uid=${SharedPreferencesUtil().uid}';
+  } else {
+    url += '?uid=${SharedPreferencesUtil().uid}';
+  }
+  debugPrint('triggerMemoryRequestAtEndpoint: $url');
   var data = memory.toJson();
   data['recordingFileBase64'] = await wavToBase64(memory.recordingFilePath ?? '');
   try {
@@ -131,6 +121,8 @@ Future<String> triggerMemoryRequestAtEndpoint(String url, Memory memory) async {
       method: 'POST',
     );
     debugPrint('response: ${response?.statusCode}');
+    if (returnRawBody) return jsonEncode({'statusCode': response?.statusCode, 'body': response?.body});
+
     var body = jsonDecode(response?.body ?? '{}');
     print(body);
     return body['message'] ?? '';
@@ -146,6 +138,11 @@ Future<String> triggerMemoryRequestAtEndpoint(String url, Memory memory) async {
 Future<String> triggerTranscriptSegmentsRequest(String url, String sessionId, List<TranscriptSegment> segments) async {
   debugPrint('triggerMemoryRequestAtEndpoint: $url');
   if (url.isEmpty) return '';
+  if (url.contains('?')) {
+    url += '&uid=${SharedPreferencesUtil().uid}';
+  } else {
+    url += '?uid=${SharedPreferencesUtil().uid}';
+  }
   try {
     var response = await makeApiCall(
       url: url,
@@ -166,5 +163,26 @@ Future<String> triggerTranscriptSegmentsRequest(String url, String sessionId, Li
       'url': url,
     });
     return '';
+  }
+}
+
+Future<String?> wavToBase64(String filePath) async {
+  if (filePath.isEmpty) return null;
+  try {
+    // Read file as bytes
+    File file = File(filePath);
+    if (!file.existsSync()) {
+      // print('File does not exist: $filePath');
+      return null;
+    }
+    List<int> fileBytes = await file.readAsBytes();
+
+    // Encode bytes to base64
+    String base64Encoded = base64Encode(fileBytes);
+
+    return base64Encoded;
+  } catch (e) {
+    // print('Error converting WAV to base64: $e');
+    return null; // Handle error gracefully in your application
   }
 }

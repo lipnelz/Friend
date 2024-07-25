@@ -23,9 +23,6 @@ class SharedPreferencesUtil {
 
   String get uid => getString('uid') ?? '';
 
-  // DO NOT USE BESIDES BACKUP IMPORT
-  // set uid(String value) => saveString('uid', value);
-
   set deviceId(String value) => saveString('deviceId', value);
 
   String get deviceId => getString('deviceId') ?? '';
@@ -54,13 +51,13 @@ class SharedPreferencesUtil {
 
   set gcpBucketName(String value) => saveString('gcpBucketName', value);
 
-  String get webhookUrl => getString('webhookUrl') ?? '';
+  String get webhookOnMemoryCreated => getString('webhookUrl') ?? '';
 
-  set webhookUrl(String value) => saveString('webhookUrl', value);
+  set webhookOnMemoryCreated(String value) => saveString('webhookUrl', value);
 
-  String get transcriptServerUrl => getString('transcriptServerUrl') ?? '';
+  String get webhookOnTranscriptReceived => getString('transcriptServerUrl') ?? '';
 
-  set transcriptServerUrl(String value) => saveString('transcriptServerUrl', value);
+  set webhookOnTranscriptReceived(String value) => saveString('transcriptServerUrl', value);
 
   String get recordingsLanguage => getString('recordingsLanguage') ?? 'en';
 

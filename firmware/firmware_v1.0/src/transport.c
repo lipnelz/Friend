@@ -14,6 +14,8 @@
 #include "btutils.h"
 #include "lib/battery/battery.h"
 
+extern bool is_connected;
+
 //
 // Internal
 //
