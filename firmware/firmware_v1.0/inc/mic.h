@@ -6,6 +6,7 @@
 #endif
 
 #include "utils.h"
+#include "friend.h"
 
 int mic_start(void);
 void set_mic_callback(Friend_Ctx_s *ctx, mix_handler callback);
