@@ -6,10 +6,7 @@
 #endif
 
 #include "utils.h"
-<<<<<<< HEAD
 #include "friend.h"
-=======
->>>>>>> 35823aad (clean headers)
 
 int mic_start(void);
 void set_mic_callback(Friend_Ctx_s *ctx, mix_handler callback);

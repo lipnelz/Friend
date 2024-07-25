@@ -20,21 +20,19 @@ static void pdm_irq_handler(nrfx_pdm_evt_t const *event)
         return;
     }
 
-    Friend_Ctx_s *tmp_ctx = get_friend_context();
-
     // Assign buffer
     if (event->buffer_requested)
     {
         // printk("Buffer requested\n");
-        if (tmp_ctx->mic._next_buffer_index == 0)
+        if (get_friend_mic_buff_idx() == 0)
         {
-            nrfx_pdm_buffer_set(tmp_ctx->mic._buffer_0, MIC_BUFFER_SAMPLES);
-            tmp_ctx->mic._next_buffer_index = 1;
+          nrfx_pdm_buffer_set(get_friend_buffer(0), MIC_BUFFER_SAMPLES);
+          set_friend_mic_buff_idx(1);
         }
         else
         {
-            nrfx_pdm_buffer_set(tmp_ctx->mic._buffer_1, MIC_BUFFER_SAMPLES);
-            tmp_ctx->mic._next_buffer_index = 0;
+          nrfx_pdm_buffer_set(get_friend_buffer(1), MIC_BUFFER_SAMPLES);
+          set_friend_mic_buff_idx(0);
         }
     }
 
@@ -42,10 +40,7 @@ static void pdm_irq_handler(nrfx_pdm_evt_t const *event)
     if (event->buffer_released)
     {
         // printk("Buffer released\n");
-        if (tmp_ctx->mic._callback)
-        {
-            tmp_ctx->mic._callback(event->buffer_released);
-        }
+        call_friend_mic_cb(event->buffer_released);
     }
 }
 
