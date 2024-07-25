@@ -20,9 +20,8 @@ typedef struct Friend_context
   Mic_ctx_s mic;
 } Friend_Ctx_s;
 
-
-
 Friend_Ctx_s* get_friend_context(void);
+
 
 #define ASSERT_OK(result)                                          \
     if ((result) < 0)                                              \

@@ -10,17 +10,20 @@
 // Main device context
 Friend_Ctx_s Friend_ctx;
 
-static void init_context(Friend_Ctx_s *ctx);
+static void init_friend_context(Friend_Ctx_s *ctx);
 static void codec_handler(uint8_t *data, size_t len);
 static void mic_handler(int16_t *buffer);
 
-static void init_context(Friend_Ctx_s *ctx)
+static void init_friend_context(Friend_Ctx_s *ctx)
 {
 	ctx->is_charging = false;
 	ctx->is_connected = false;
 
 	ctx->mic._callback = NULL;
 	ctx->mic._next_buffer_index = 0;
+
+	memset(ctx->mic._buffer_0, 0, MIC_BUFFER_SAMPLES);
+    memset(ctx->mic._buffer_1, 0, MIC_BUFFER_SAMPLES);
 }
 
 static void codec_handler(uint8_t *data, size_t len)
@@ -84,7 +87,7 @@ void set_led_state(Friend_Ctx_s *ctx)
 // Main loop
 int main(void)
 {
-	init_context(&Friend_ctx);
+	init_friend_context(&Friend_ctx);
 
 	// Led start
 	ASSERT_OK(led_start());
