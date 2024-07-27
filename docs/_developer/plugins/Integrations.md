@@ -1,170 +1,276 @@
 ---
-title: Integrations
+title: Integration Plugins
 layout: default
 parent: Plugins
 nav_order: 3
 ---
 
+# 🚀 Developing Integration Plugins for FRIEND
 
-# Building Integrations Plugins
+Integration plugins allow FRIEND to interact with external services and process data in real-time. This guide will walk
+you through creating both Memory Creation Triggers and Real-Time Transcript Processors.
 
-This guide explains how to create plugins that can work as a standalone app on top of FRIEND infrastructure. There are
-three main ways to integrate with the app:
+## Types of Integration Plugins
 
-1. On Memory Created plugins
-2. On Transcript Received plugins
+### 1. 👷 Memory Creation Triggers
 
-## Table of Contents
+These plugins are activated when FRIEND creates a new memory, allowing you to process or store the memory data
+externally.
 
-1. [Plugin Types](#plugin-types)
-2. [Plugin Structure](#plugin-structure)
-3. [Setting Up the Environment](#setting-up-the-environment)
-4. [Creating a Plugin](#creating-a-plugin)
-5. [On Memory Created Plugin Example](#on-memory-created-plugin-example)
-6. [On Transcript Received Plugin Example](#on-transcript-received-plugin-example)
-7. [Submitting Your Plugin](#submitting-your-plugin)
+<a href="https://youtube.com/shorts/Yv7gP3GZ0ME" target="_blank">
+  <div style="position: relative; display: inline-block;">
+    <img src="https://img.youtube.com/vi/Yv7gP3GZ0ME/0.jpg" alt="Memory trigger plugin" style="width: 300px;">
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: rgba(0,0,0,0.7); border-radius: 50%; width: 70px; height: 70px; display: flex; justify-content: center; align-items: center;">
+      <div style="width: 0; height: 0; border-top: 18px solid transparent; border-bottom: 18px solid transparent; border-left: 28px solid white; margin-left: 5px;"></div>
+    </div>
+  </div>
+</a>
 
-## Plugin Types
+#### Example Use Cases
 
-### 1. On Memory Created Plugins
+- Update project management tools with conversation summaries
+- Create a personalized social platform based on conversations and interests
+- Generate a knowledge graph of interests, experiences, and relationships
 
-These plugins are triggered when a new memory is created, similar to webhooks. However, these can be installed by all
-users.
+### 2. 🏎️ Real-Time Transcript Processors
 
-### 2. On Transcript Received Plugins
+These plugins process conversation transcripts as they occur, enabling real-time analysis and actions.
 
-These plugins listen for conversation transcripts and are processed every 30 seconds. The current set of new transcripts
-is sent to the plugin for processing.
+<a href="https://youtube.com/shorts/h4ojO3WzkxQ" target="_blank">
+  <div style="position: relative; display: inline-block;">
+    <img src="https://img.youtube.com/vi/h4ojO3WzkxQ/0.jpg" alt="Memory trigger plugin" style="width: 300px;">
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: rgba(0,0,0,0.7); border-radius: 50%; width: 70px; height: 70px; display: flex; justify-content: center; align-items: center;">
+      <div style="width: 0; height: 0; border-top: 18px solid transparent; border-bottom: 18px solid transparent; border-left: 28px solid white; margin-left: 5px;"></div>
+    </div>
+  </div>
+</a>
 
-## Plugin Structure
+#### Example Use Cases
 
-Plugins are defined using a JSON structure. Here's an example:
+- Live conversation coaching and feedback
+- Real-time web searches or fact-checking
+- Emotional state analysis and supportive responses
+
+## Creating an Integration Plugin
+
+### Step 1: Define Your Plugin 🎯
+
+Decide whether you're creating a Memory Creation Trigger or a Real-Time Transcript Processor, and outline its specific
+purpose.
+
+### Step 2: Set Up Your Endpoint 🔗
+
+Create an endpoint (webhook) that can receive and process the data sent by FRIEND. You can [create a test webhook](https://webhook-test.com/). The data structure will differ based on your
+plugin type:
+
+#### For Memory Creation Triggers:
+
+Your endpoint will receive the entire memory object as a JSON payload, with a `uid` as a query parameter. Here's what to
+expect:
+
+`GET /your-endpoint?uid=user123`
 
 ```json
+
 {
-  "id": "notion-conversations-crm",
-  "name": "Notion Conversations CRM",
-  "author": "@josancamon19",
-  "description": "Stores all your conversations into a notion database",
-  "image": "/assets/plugin_images/notion-crm.png",
-  "prompt": "",
-  "memories": false,
-  "chat": false,
-  "capabilities": [
-    "external_integration"
+  "id": 0,
+  "created_at": "2024-07-22T23:59:45.910559+00:00",
+  "started_at": "2024-07-21T22:34:43.384323+00:00",
+  "finished_at": "2024-07-21T22:35:43.384323+00:00",
+  "transcript": "Full transcript text...",
+  "transcript_segments": [
+    {
+      "text": "Segment text",
+      "speaker": "SPEAKER_00",
+      "speakerId": 0,
+      "is_user": false,
+      "start": 10.0,
+      "end": 20.0
+    }
+    // More segments...
   ],
-  "external_integration": {
-    "triggers_on": "memory_creation",
-    "webhook_url": "https://josancamon19--plugins-examples-plugins-app.modal.run/notion-crm",
-    "setup_instructions_file_path": "/assets/external_plugins_instructions/notion-conversations-crm.md"
-  }
+  "photos": [],
+  "structured": {
+    "title": "Conversation Title",
+    "overview": "Brief overview...",
+    "emoji": "🗣️",
+    "category": "personal",
+    "action_items": [
+      {
+        "description": "Action item description",
+        "completed": false
+      }
+    ],
+    "events": []
+  },
+  "plugins_response": [
+    {
+      "plugin_id": "plugin-id",
+      "content": "Plugin response content"
+    }
+  ],
+  "discarded": false
 }
 ```
 
-## Creating a Plugin
+Your plugin should process this entire object and perform any necessary actions based on the full context of the memory.
 
-## On Memory Created Plugin Example
+> Check the [Notion CRM Python Example](https://github.com/BasedHardware/Friend/blob/bab12a678f3cfe43ab1a7aba62645222de4378fb/plugins/example/main.py#L85)
+> and it's respective JSON format [here](https://github.com/BasedHardware/Friend/blob/bab12a678f3cfe43ab1a7aba62645222de4378fb/community-plugins.json#L359).
 
-Here's an example of an On Memory Created plugin (Notion CRM):
+**For Real-Time Transcript Processors:**
 
-```python
-@app.post('/notion-crm')
-def notion_crm(memory: Memory, uid: str):
-    notion_api_key = get_notion_crm_api_key(uid)
-    if not notion_api_key:
-        return {'message': 'Your Notion CRM plugin is not enabled. Please enable it in the settings.'}
-    store_memoy_in_db(notion_api_key, get_notion_database_id(uid), memory)
-    return {}
+Your endpoint will receive a JSON payload containing the most recently transcribed segments, with both session_id and
+uid as query parameters. Here's the structure:
+
+`GET /your-endpoint?session_id=abc123&uid=user123`
+
+```json
+[
+  {
+    "text": "Segment text",
+    "speaker": "SPEAKER_00",
+    "speakerId": 0,
+    "is_user": false,
+    "start": 10.0,
+    "end": 20.0
+  }
+  // More recent segments...
+]
 ```
 
-## On Transcript Received Plugin Example
+**Key points for Real-Time Transcript Processors:**
 
-Here's an example of an On Transcript Received plugin (News Checker):
+1. Segments arrive in multiple calls as the conversation unfolds.
+2. Use the session_id to maintain context across calls.
+3. Implement smart logic to avoid redundant processing.
+4. Consider building a complete conversation context by accumulating segments.
+5. Clear processed segments to prevent re-triggering on future calls.
 
-```python
-@app.post('/news-checker')
-def news_checker_endpoint(uid: str, data: dict):
-    session_id = data['session_id']
-    segments = data['segments']
-    return {'message': news_checker(segments)}
-```
+Remember to handle errors gracefully and consider performance, especially for lengthy conversations!
 
-## Submitting Your Plugin
+> Check the Realtime News checker [Python Example](https://github.com/BasedHardware/Friend/blob/bab12a678f3cfe43ab1a7aba62645222de4378fb/plugins/example/main.py#L100)
+> and it's respective JSON format [here](https://github.com/BasedHardware/Friend/blob/bab12a678f3cfe43ab1a7aba62645222de4378fb/community-plugins.json#L379).
 
-To submit your plugin for users to see on their available plugins list, create a Pull Request with the following JSON
-structure:
+### Step 3: Test Your Plugin 🧪
 
-`triggers_on` param could be `memory_creation` or `transcript_processed`
+Time to put your plugin through its paces! Follow these steps to test both types of integrations:
+
+1. Open the FRIEND app on your device.
+2. Go to Settings and enable Developer Mode.
+3. Navigate to Developer Settings.
+
+#### For Memory Creation Triggers:
+
+4. Set your endpoint URL in the "Memory Creation Webhook" field. If you don't have an endpoint yet, [create a test webhook](https://webhook-test.com/)
+5. To test without creating a new memory:
+    - Go to any memory detail view.
+    - Click on the top right corner (3 dots menu).
+    - In the Developer Tools section, trigger the endpoint call with existing memory data.
+
+<a href="https://youtube.com/shorts/dYVSbEpoV0U" target="_blank">
+  <div style="position: relative; display: inline-block;">
+    <img src="https://img.youtube.com/vi/dYVSbEpoV0U/0.jpg" alt="Memory trigger plugin" style="width: 300px;">
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: rgba(0,0,0,0.7); border-radius: 50%; width: 70px; height: 70px; display: flex; justify-content: center; align-items: center;">
+      <div style="width: 0; height: 0; border-top: 18px solid transparent; border-bottom: 18px solid transparent; border-left: 28px solid white; margin-left: 5px;"></div>
+    </div>
+  </div>
+</a>
+
+#### For Real-Time Transcript Processors:
+
+4. Set your endpoint URL in the "Real-Time Transcript Webhook" field.
+5. Start speaking to your device - your endpoint will receive real-time updates as you speak.
+
+<a href="https://youtube.com/shorts/CHz9JnOGlTQ" target="_blank">
+  <div style="position: relative; display: inline-block;">
+    <img src="https://img.youtube.com/vi/CHz9JnOGlTQ/0.jpg" alt="Memory trigger plugin" style="width: 300px;">
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: rgba(0,0,0,0.7); border-radius: 50%; width: 70px; height: 70px; display: flex; justify-content: center; align-items: center;">
+      <div style="width: 0; height: 0; border-top: 18px solid transparent; border-bottom: 18px solid transparent; border-left: 28px solid white; margin-left: 5px;"></div>
+    </div>
+  </div>
+</a>
+
+
+Your endpoints are now ready to spring into action!
+
+For **Memory Creation Triggers**, you can test with existing memories or wait for new ones to be created.
+
+For **Real-Time Processors**, simply start a conversation with FRIEND to see your plugin in action.
+
+Happy plugin crafting! We can't wait to see what you create! 🎉
+
+### Step 4: Prepare Your Plugin for Submission
+
+Create a JSON object defining your plugin:
 
 ```json
 {
   "id": "your-plugin-id",
   "name": "Your Plugin Name",
-  "author": "@your-username",
-  "description": "A brief description of your plugin",
-  "image": "/assets/plugin_images/your-plugin-image.png",
-  "prompt": "",
-  "memories": false,
-  "chat": false,
+  "author": "Your Name",
+  "description": "Brief description of your plugin",
+  "image": "/plugins/logos/your-plugin-logo.jpg",
   "capabilities": [
     "external_integration"
   ],
   "external_integration": {
+    // "memory_creation" | "transcript_processed"
     "triggers_on": "memory_creation",
-    "webhook_url": "https://your-plugin-url.com/endpoint",
-    "setup_instructions_file_path": "/assets/external_plugins_instructions/your-plugin-instructions.md"
-  }
+    // a POST request with the memory object will be sent here as a JSON payload
+    "webhook_url": "https://your-endpoint-url.com",
+    // GET endpoint, that returns {'is_setup_completed': boolean} (Optional) if your plugin doesn't require setup, set to null.
+    "setup_completed_url": "https://your-setup-completion-url.com",
+    // Include a Readme with more details about your plugin in the PR 
+    "setup_instructions_file_path": "/plugins/instructions/your-plugin/README.md"
+  },
+  "deleted": false
 }
 ```
 
-### Models
+### Integration Instructions Documentation
 
-Structure of plugin data received.
+Create a markdown file at `setup_instructions_file_path` with:
 
-```python
-# transcript_processed plugin
-class TranscriptSegment(BaseModel):
-    text: str
-    speaker: str
-    speaker_id: int
-    is_user: bool
-    start: float
-    end: float
+1. Step-by-step setup guide
+2. Screenshots (if applicable)
+3. Authentication steps (if required)
+4. Troubleshooting tips
 
+Example structure:
 
-# memory_created plugin
-class Memory(BaseModel):
-    createdAt: datetime
-    startedAt: Optional[datetime] = None
-    finishedAt: Optional[datetime] = None
-    transcript: str = ''
-    transcriptSegments: List[TranscriptSegment] = []
-    photos: Optional[List[MemoryPhoto]] = []
-    recordingFilePath: Optional[str] = None
-    recordingFileBase64: Optional[str] = None
-    structured: Structured
-    pluginsResponse: List[PluginResponse] = []
-    discarded: bool
+```markdown
+# Setting Up [Your Plugin Name]
 
+1. [First step]
+   ![Step 1](assets/step_1.png)
+
+2. [Second step]
+   ![Step 2](assets/step_2.png)
+
+## Authentication (if required)
+
+If your plugin requires user-specific authentication (e.g., connecting to a user's Notion table):
+
+1. In your authentication flow, use the `uid` query parameter we append this as query param to all your links in your
+   README, so you can map user credentials.
+2. [Authentication steps]
+3. After successful authentication, return `{"is_setup_completed": true}` from your `setup_completed_url`.
+
+If your plugin doesn't require user authentication (e.g., it's a purely LLM-based service), you can skip this section.
+
+## Troubleshooting
+
+[Common issues and solutions]
+
+---
+
+> Experimental feature. Feedback: [your email]
 ```
 
-### Submission Details
+**Notes:**
 
-1. Fork the repository.
-2. Create a feature branch.
-3. Add your plugin entry to `community-plugins.json`.
-4. Create an image for your plugin and place it in the `/assets/plugin_images` directory with the
-   name `{plugin_id}.png`.
-5. Commit with a message like "Add [PluginName] to community plugins."
-6. Open a pull request with a clear plugin description.
-
-Plugin submissions will be reviewed for integration into the main repository.
-
-## How Community Plugins are Pulled
-
-1. **Adding Your Plugin**: Submit your plugin by adding it to the `community-plugins.json` list via a pull request.
-2. **Approval**: The Based Hardware team will review your plugin entry for completeness, coherence, and functionality.
-   We will also review the included image for appropriateness and adherence to the specified format and size.
-3. **Marketplace Availability**: Once approved, your plugin will be listed in the FRIEND mobile app's Plugins
-   marketplace, where users can easily browse and install it. The provided image will be displayed alongside your
-   plugin's name and description.
+- Authentication is not needed for all plugins. Include only if your plugin requires user-specific setup or credentials.
+- For plugins without authentication, users can simply enable the plugin without additional steps.
+- All your README links, when the user opens them, we'll append a `uid` query parameter to it, which you can use to
+  associate setup or credentials with specific users.
