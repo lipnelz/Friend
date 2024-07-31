@@ -144,6 +144,10 @@ class TranscriptSegment {
     var userName = SharedPreferencesUtil().givenName;
     includeTimestamps = includeTimestamps && TranscriptSegment.canDisplaySeconds(segments);
     for (var segment in segments) {
+<<<<<<< HEAD
+=======
+      // TODO: maybe store TranscriptSegment directly as utf8 decoded
+>>>>>>> f43bbb0d (remove utf-8 decode in necessary places)
       var segmentText = segment.text.trim();
       var timestampStr = includeTimestamps ? '[${segment.getTimestampString()}]' : '';
       if (segment.isUser) {
