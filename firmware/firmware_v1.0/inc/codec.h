@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #ifndef __CODEC_H
 #define __CODEC_H
 
@@ -6,6 +7,9 @@
 #endif
 
 
+=======
+#pragma once
+>>>>>>> 502e2fcc (fixup! fix to transcribe endpoint (removed speech profiles))
 #include <zephyr/kernel.h>
 
 // Callback
@@ -14,6 +18,7 @@ void set_codec_callback(codec_callback callback);
 
 // Integration
 int codec_receive_pcm(int16_t *data, size_t len);
+<<<<<<< HEAD
 int codec_start();
 
 #ifdef __cplusplus
@@ -21,3 +26,6 @@ int codec_start();
 #endif
 
 #endif /* __CODEC_H */
+=======
+int codec_start();
+>>>>>>> 502e2fcc (fixup! fix to transcribe endpoint (removed speech profiles))

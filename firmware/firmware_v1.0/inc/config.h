@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
@@ -6,6 +7,8 @@
 #endif
 
 
+=======
+>>>>>>> 502e2fcc (fixup! fix to transcribe endpoint (removed speech profiles))
 #include <haly/nrfy_gpio.h>
 
 // #define SAMPLE_RATE 16000
@@ -70,6 +73,7 @@
 #endif
 
 // Logs
+<<<<<<< HEAD
 // #define LOG_DISCARDED
 
 #ifdef __cplusplus
@@ -77,3 +81,6 @@
 #endif
 
 #endif /* __CONFIG_H */
+=======
+// #define LOG_DISCARDED
+>>>>>>> 502e2fcc (fixup! fix to transcribe endpoint (removed speech profiles))

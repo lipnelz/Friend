@@ -19,6 +19,7 @@ extern bool is_connected;
 //
 // Internal
 //
+extern bool is_connected;
 
 static struct bt_conn_cb _callback_references;
 
