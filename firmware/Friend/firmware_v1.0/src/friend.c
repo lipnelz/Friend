@@ -10,8 +10,8 @@ void init_friend_context(Friend_Ctx_s *ctx)
 
   ctx->mic._callback = NULL;
   ctx->mic._next_buffer_index = 0;
-  memset(ctx->mic._buffer_0, 0, MIC_BUFFER_SAMPLES);
-  memset(ctx->mic._buffer_1, 0, MIC_BUFFER_SAMPLES);
+  memset(ctx->mic._buffer_0, 0, MIC_BUFFER_SAMPLES*(sizeof(uint16_t)));
+  memset(ctx->mic._buffer_1, 0, MIC_BUFFER_SAMPLES*(sizeof(uint16_t)));
 }
 
 uint8_t get_friend_mic_buff_idx(void)
